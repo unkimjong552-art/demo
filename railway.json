@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "RAILPACK"
+  },
+  "deploy": {
+    "startCommand": "php artisan migrate --force --no-interaction && /start-container.sh",
+    "healthcheckPath": "/up",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
