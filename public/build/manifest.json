@@ -1,0 +1,164 @@
+{
+  "_PhysicalAssessmentLayout-BTBAOB_z.js": {
+    "file": "assets/PhysicalAssessmentLayout-BTBAOB_z.js",
+    "name": "PhysicalAssessmentLayout",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/PhysicalAssessmentLayout-ZYtJmZnC.css"
+    ]
+  },
+  "_PhysicalAssessmentLayout-ZYtJmZnC.css": {
+    "file": "assets/PhysicalAssessmentLayout-ZYtJmZnC.css",
+    "src": "_PhysicalAssessmentLayout-ZYtJmZnC.css"
+  },
+  "_PhysicalTestCard-CmLxw9QJ.js": {
+    "file": "assets/PhysicalTestCard-CmLxw9QJ.js",
+    "name": "PhysicalTestCard",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-CBYt3BSB.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/Pages/App.vue": {
+    "file": "assets/App-DraoCfZH.js",
+    "name": "App",
+    "src": "resources/js/Pages/App.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/Pages/Dashboard.vue",
+      "resources/js/Pages/Assessment.vue",
+      "resources/js/Pages/History.vue",
+      "resources/js/Pages/Athlete.vue",
+      "resources/js/Pages/Settings.vue",
+      "resources/js/app.js",
+      "_PhysicalAssessmentLayout-BTBAOB_z.js",
+      "_PhysicalTestCard-CmLxw9QJ.js",
+      "resources/js/Pages/AssessmentSession.vue"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/Assessment.vue": {
+    "file": "assets/Assessment-ChVgbFtZ.js",
+    "name": "Assessment",
+    "src": "resources/js/Pages/Assessment.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PhysicalAssessmentLayout-BTBAOB_z.js",
+      "_PhysicalTestCard-CmLxw9QJ.js",
+      "resources/js/Pages/AssessmentSession.vue"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/AssessmentSession.vue": {
+    "file": "assets/AssessmentSession-Dlkr7kRE.js",
+    "name": "AssessmentSession",
+    "src": "resources/js/Pages/AssessmentSession.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_PhysicalAssessmentLayout-BTBAOB_z.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/Athlete.vue": {
+    "file": "assets/Athlete-BOA3Xy9L.js",
+    "name": "Athlete",
+    "src": "resources/js/Pages/Athlete.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PhysicalAssessmentLayout-BTBAOB_z.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/Dashboard.vue": {
+    "file": "assets/Dashboard-CbgKzX9N.js",
+    "name": "Dashboard",
+    "src": "resources/js/Pages/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_PhysicalAssessmentLayout-BTBAOB_z.js",
+      "resources/js/app.js",
+      "_PhysicalTestCard-CmLxw9QJ.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/History.vue": {
+    "file": "assets/History-BMe-Cuy3.js",
+    "name": "History",
+    "src": "resources/js/Pages/History.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_PhysicalAssessmentLayout-BTBAOB_z.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/Settings.vue": {
+    "file": "assets/Settings-DfhmTYEx.js",
+    "name": "Settings",
+    "src": "resources/js/Pages/Settings.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_PhysicalAssessmentLayout-BTBAOB_z.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/Pages/Welcome.vue": {
+    "file": "assets/Welcome-DNi2uDB6.js",
+    "name": "Welcome",
+    "src": "resources/js/Pages/Welcome.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-B5MztZtn.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/Pages/App.vue",
+      "resources/js/Pages/Assessment.vue",
+      "resources/js/Pages/AssessmentSession.vue",
+      "resources/js/Pages/Athlete.vue",
+      "resources/js/Pages/Dashboard.vue",
+      "resources/js/Pages/History.vue",
+      "resources/js/Pages/Settings.vue",
+      "resources/js/Pages/Welcome.vue"
+    ],
+    "css": [
+      "assets/app-CBYt3BSB.css"
+    ]
+  }
+}
