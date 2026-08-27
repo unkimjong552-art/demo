@@ -1,0 +1,42 @@
+# nixpacks.toml — Railway deployment config
+# Dokumentasi: https://nixpacks.com/docs/config
+
+[phases.setup]
+nixPkgs = [
+  "php82",
+  "php82Extensions.pdo",
+  "php82Extensions.pdo_sqlite",
+  "php82Extensions.sqlite3",
+  "php82Extensions.mbstring",
+  "php82Extensions.xml",
+  "php82Extensions.curl",
+  "php82Extensions.zip",
+  "php82Extensions.tokenizer",
+  "php82Extensions.bcmath",
+  "php82Extensions.ctype",
+  "php82Extensions.fileinfo",
+  "nodejs_20"
+]
+
+[phases.install]
+cmds = [
+  "composer install --no-dev --optimize-autoloader --no-interaction",
+  "npm ci"
+]
+
+[phases.build]
+cmds = [
+  "npm run build",
+  "cp .env.example .env",
+  "sed -i 's|APP_ENV=local|APP_ENV=production|' .env",
+  "sed -i 's|APP_DEBUG=true|APP_DEBUG=false|' .env",
+  "php artisan key:generate --force",
+  "php artisan config:cache",
+  "php artisan route:cache",
+  "php artisan view:cache",
+  "php artisan migrate --force --no-interaction",
+  "php artisan storage:link || true"
+]
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
