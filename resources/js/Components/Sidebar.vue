@@ -2,6 +2,7 @@
     <aside
         :class="[
             'fixed inset-y-0 left-0 z-50 flex flex-col bg-dark-900 border-r border-white/5 transition-all duration-300',
+            mobile ? '' : 'hidden lg:flex',
             collapsed ? 'w-16' : 'w-64'
         ]"
     >
@@ -76,6 +77,7 @@ import NavItem from './NavItem.vue';
 const props = defineProps({
     collapsed: { type: Boolean, default: false },
     currentPage: { type: String, default: 'dashboard' },
+    mobile: { type: Boolean, default: false },
 });
 
 defineEmits(['toggle-collapse', 'navigate']);
