@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "build:railway": "echo 'Assets pre-built, skipping vite build'",
         "dev": "vite"
     },
     "devDependencies": {
