@@ -6,6 +6,7 @@
             :current-page="currentPage"
             @toggle-collapse="sidebarCollapsed = !sidebarCollapsed"
             @navigate="handleNavigate"
+            class="hidden lg:flex"
         />
 
         <!-- Mobile sidebar overlay -->
