@@ -1,7 +1,8 @@
 <template>
     <div class="min-h-screen bg-dark-950 flex">
-        <!-- Sidebar -->
+        <!-- Sidebar desktop — disembunyikan di mobile via v-show + JS, bukan Tailwind -->
         <Sidebar
+            v-show="isDesktop"
             :collapsed="sidebarCollapsed"
             :current-page="currentPage"
             @toggle-collapse="sidebarCollapsed = !sidebarCollapsed"
@@ -35,10 +36,8 @@
 
         <!-- Main content -->
         <div
-            :class="[
-                'flex-1 flex flex-col min-w-0 transition-all duration-300',
-                sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
-            ]"
+            :style="isDesktop ? (sidebarCollapsed ? 'margin-left:4rem' : 'margin-left:16rem') : 'margin-left:0'"
+            class="flex-1 flex flex-col min-w-0 transition-all duration-300"
         >
             <!-- Header -->
             <Header
@@ -56,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Sidebar from '@/Components/Sidebar.vue';
 import Header from '@/Components/Header.vue';
 
@@ -68,8 +67,23 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate']);
 
-const sidebarCollapsed = ref(false);
+const sidebarCollapsed  = ref(false);
 const mobileSidebarOpen = ref(false);
+const isDesktop         = ref(true); // default true, diupdate setelah mount
+
+function checkDesktop() {
+    isDesktop.value = window.innerWidth >= 1024; // lg breakpoint = 1024px
+    if (isDesktop.value) mobileSidebarOpen.value = false;
+}
+
+onMounted(() => {
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkDesktop);
+});
 
 function handleNavigate(page) {
     mobileSidebarOpen.value = false;

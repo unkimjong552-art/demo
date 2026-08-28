@@ -1,8 +1,7 @@
 <template>
     <aside
         :class="[
-            'fixed inset-y-0 left-0 z-50 flex-col bg-dark-900 border-r border-white/5 transition-all duration-300',
-            mobile ? 'flex' : 'hidden lg:flex',
+            'fixed inset-y-0 left-0 z-50 flex flex-col bg-dark-900 border-r border-white/5 transition-all duration-300',
             collapsed ? 'w-16' : 'w-64'
         ]"
     >
