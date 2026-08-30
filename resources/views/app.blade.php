@@ -12,7 +12,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Scripts & Styles -->
-    @routes
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
