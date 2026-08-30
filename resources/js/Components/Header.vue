@@ -5,7 +5,7 @@
         <div class="flex items-center gap-3">
             <button
                 @click="$emit('toggle-sidebar')"
-                class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all duration-200 lg:hidden"
+                class="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all duration-200 md:hidden"
             >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>

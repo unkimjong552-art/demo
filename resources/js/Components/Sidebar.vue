@@ -13,11 +13,21 @@
                 </svg>
             </div>
             <transition name="fade">
-                <div v-if="!collapsed" class="overflow-hidden">
+                <div v-if="!collapsed" class="overflow-hidden flex-1">
                     <span class="block font-display font-bold text-sm tracking-wider text-white uppercase leading-tight">PhysAssess</span>
                     <span class="block text-xs text-slate-500 font-medium">v1.0 Beta</span>
                 </div>
             </transition>
+            <!-- Close button on mobile -->
+            <button
+                v-if="mobile"
+                @click="$emit('toggle-collapse')"
+                class="ml-auto p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all duration-200"
+            >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
         <!-- Navigation -->
@@ -50,8 +60,8 @@
             />
         </nav>
 
-        <!-- Collapse toggle -->
-        <div class="px-2 py-4 border-t border-white/5">
+        <!-- Collapse toggle — hanya di desktop -->
+        <div v-if="!mobile" class="px-2 py-4 border-t border-white/5">
             <button
                 @click="$emit('toggle-collapse')"
                 class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all duration-200 group"

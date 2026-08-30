@@ -7,6 +7,38 @@
         page-subtitle="Pilih tes kebugaran fisik yang ingin dilakukan"
         @navigate="handleNavigate"
     >
+        <!-- Athlete name input — wajib diisi sebelum memulai tes -->
+        <div class="mb-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <label class="text-sm font-semibold text-slate-300 whitespace-nowrap flex-shrink-0">
+                    Nama Atlet
+                    <span class="text-red-400 ml-0.5">*</span>
+                </label>
+                <div class="flex-1 w-full sm:max-w-xs">
+                    <input
+                        v-model="athleteName"
+                        @input="nameError = ''"
+                        type="text"
+                        placeholder="Masukkan nama atlet..."
+                        maxlength="60"
+                        :class="[
+                            'w-full px-3 py-2 rounded-lg text-sm text-white placeholder-slate-600 outline-none transition-all duration-200',
+                            nameError
+                                ? 'bg-red-500/10 border border-red-500/40 focus:border-red-400'
+                                : 'bg-dark-800 border border-white/5 focus:border-primary-500/40'
+                        ]"
+                    />
+                    <p v-if="nameError" class="text-xs text-red-400 mt-1.5">{{ nameError }}</p>
+                </div>
+                <p v-if="athleteName.trim()" class="text-xs text-emerald-400 flex items-center gap-1 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Siap pilih tes
+                </p>
+            </div>
+        </div>
+
         <!-- Filter bar -->
         <div class="flex flex-wrap items-center gap-3 mb-6">
             <button
@@ -79,6 +111,7 @@
         v-else
         :current-page="currentPage"
         :test="activeTest"
+        :athlete-name="athleteName.trim()"
         @back="activeTest = null"
         @navigate="handleNavigate"
     />
@@ -99,6 +132,8 @@ const emit = defineEmits(['navigate']);
 const activeFilter = ref('Semua');
 const searchQuery  = ref('');
 const activeTest   = ref(null);     // null = pilih tes, Object = session aktif
+const athleteName  = ref('');       // nama atlet diisi sebelum assessment
+const nameError    = ref('');       // pesan error validasi nama
 
 const filters = ['Semua', 'Balance', 'Endurance', 'Strength', 'Mobility', 'Power', 'Flexibility'];
 
@@ -126,6 +161,11 @@ const filteredTests = computed(() => {
 });
 
 function handleStartTest(test) {
+    if (!athleteName.value.trim()) {
+        nameError.value = 'Masukkan nama atlet sebelum memulai tes.';
+        return;
+    }
+    nameError.value  = '';
     activeTest.value = test;
 }
 

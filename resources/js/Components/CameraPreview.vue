@@ -2,9 +2,11 @@
     <div class="relative w-full flex flex-col items-center">
 
         <!-- Camera viewport -->
-        <div class="relative w-full rounded-2xl overflow-hidden bg-dark-950 border border-white/10"
-             :style="{ aspectRatio: '16/9' }">
-
+        <div
+            ref="cameraContainerRef"
+            class="relative w-full rounded-2xl overflow-hidden bg-dark-950 border border-white/10 touch-none"
+            :style="{ aspectRatio: '16/9' }"
+        >
             <!-- Video element -->
             <video
                 ref="videoRef"
@@ -15,7 +17,7 @@
                 muted
             ></video>
 
-            <!-- Overlay: Idle state (before permission request) -->
+            <!-- Overlay: Idle state -->
             <div v-if="status === 'idle'"
                  class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-dark-950">
                 <div class="w-16 h-16 rounded-full bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
@@ -29,7 +31,7 @@
                 </div>
             </div>
 
-            <!-- Overlay: Requesting permission -->
+            <!-- Overlay: Requesting -->
             <div v-if="status === 'requesting'"
                  class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-dark-950">
                 <div class="w-16 h-16 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
@@ -54,7 +56,7 @@
                 <div class="text-center">
                     <p class="text-red-400 font-semibold text-sm mb-2">Akses Kamera Ditolak</p>
                     <p class="text-slate-400 text-xs leading-relaxed max-w-xs">
-                        Browser memblokir akses kamera. Buka pengaturan browser dan izinkan akses kamera untuk situs ini, lalu coba lagi.
+                        Buka pengaturan browser dan izinkan akses kamera untuk situs ini, lalu coba lagi.
                     </p>
                 </div>
                 <button @click="retryCamera"
@@ -81,7 +83,7 @@
                 </button>
             </div>
 
-            <!-- Live indicator (shown when streaming) -->
+            <!-- Live indicator -->
             <div v-if="isStreaming"
                  class="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/10">
                 <span class="relative flex h-2 w-2">
@@ -91,16 +93,42 @@
                 <span class="text-white text-xs font-semibold tracking-wide">LIVE</span>
             </div>
 
-            <!-- Camera info overlay (shown when streaming) -->
-            <div v-if="isStreaming"
-                 class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/10">
-                <span class="text-slate-300 text-xs font-medium">{{ cameraLabel }}</span>
+            <!-- Camera label + flip button row (top right) -->
+            <div v-if="isStreaming" class="absolute top-3 right-3 flex items-center gap-2">
+                <!-- Camera facing label -->
+                <div class="px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/10">
+                    <span class="text-slate-300 text-xs font-medium">
+                        {{ facingMode === 'environment' ? '📷 Belakang' : '🤳 Depan' }}
+                    </span>
+                </div>
+                <!-- Flip camera button — only when multiple cameras available -->
+                <button
+                    v-if="hasMutipleCamera && !isSwitching"
+                    @click="flipCamera"
+                    title="Ganti Kamera"
+                    class="p-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-white hover:bg-black/70 transition-all duration-200 active:scale-95"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        <circle cx="12" cy="12" r="3" stroke="none" fill="currentColor"/>
+                    </svg>
+                </button>
+                <!-- Switching indicator -->
+                <div v-if="isSwitching"
+                     class="p-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-yellow-400">
+                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </div>
             </div>
 
-            <!-- Slot untuk overlay tambahan (PoseDetector canvas, dsb.) -->
-            <slot name="overlay" />
+            <!-- Swipe hint — mobile only, shown briefly then fades -->
+            <div v-if="isStreaming && showSwipeHint && hasMutipleCamera"
+                 class="absolute bottom-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 pointer-events-none">
+                <span class="text-slate-300 text-xs">↔ Geser untuk ganti kamera</span>
+            </div>
 
-            <!-- Assessment active overlay (shown when assessing) -->
+            <!-- Assessment active overlay -->
             <div v-if="isAssessing"
                  class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600/80 backdrop-blur-sm border border-primary-500/30">
                 <span class="relative flex h-2 w-2">
@@ -110,22 +138,29 @@
                 <span class="text-white text-xs font-bold tracking-wider uppercase">Assessment Berjalan</span>
                 <span class="text-primary-200 text-xs font-mono font-bold">{{ elapsedFormatted }}</span>
             </div>
+
+            <!-- Camera flip error toast -->
+            <transition name="toast">
+                <div v-if="flipError"
+                     class="absolute bottom-3 left-3 right-3 px-3 py-2 rounded-xl bg-orange-500/90 backdrop-blur-sm text-white text-xs font-medium text-center">
+                    {{ flipError }}
+                </div>
+            </transition>
+
+            <!-- Overlay slot (PoseDetector canvas) -->
+            <slot name="overlay" />
         </div>
 
         <!-- Status bar below camera -->
         <div class="w-full mt-3 flex items-center justify-between px-1">
-            <!-- Left: status indicator -->
             <div class="flex items-center gap-2">
                 <div :class="['w-2 h-2 rounded-full', statusDotColor]"></div>
                 <span class="text-xs font-medium" :class="statusTextColor">{{ statusLabel }}</span>
             </div>
-
-            <!-- Right: resolution info -->
             <span v-if="isStreaming" class="text-xs text-slate-600 font-mono">
                 {{ videoWidth }}×{{ videoHeight }}
             </span>
         </div>
-
     </div>
 </template>
 
@@ -133,136 +168,197 @@
 import { ref, computed, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
-    isAssessing: { type: Boolean, default: false },
-    elapsedSeconds: { type: Number, default: 0 },
+    isAssessing:    { type: Boolean, default: false },
+    elapsedSeconds: { type: Number,  default: 0 },
 });
 
-const emit = defineEmits([
-    'camera-ready',    // stream berhasil dibuka
-    'camera-stopped',  // stream dihentikan
-    'camera-error',    // error saat akses kamera
-]);
+const emit = defineEmits(['camera-ready', 'camera-stopped', 'camera-error']);
 
-// Refs
-const videoRef    = ref(null);
-const status      = ref('idle');       // idle | requesting | streaming | denied | error
-const errorMessage = ref('');
-const cameraLabel = ref('Kamera');
-const videoWidth  = ref(0);
-const videoHeight = ref(0);
+// ── Refs ──────────────────────────────────────────────────────────────────
+const videoRef           = ref(null);
+const cameraContainerRef = ref(null);
+const status             = ref('idle');
+const errorMessage       = ref('');
+const cameraLabel        = ref('Kamera');
+const videoWidth         = ref(0);
+const videoHeight        = ref(0);
+const facingMode         = ref('environment'); // default: back camera
+const hasMutipleCamera   = ref(false);
+const isSwitching        = ref(false);
+const flipError          = ref('');
+const showSwipeHint      = ref(false);
 
-let mediaStream = null;
-let elapsedTimer = null;
+let mediaStream        = null;
+let swipeTouchStartX   = 0;
+let swipeTouchStartY   = 0;
+let swipeHintTimer     = null;
+let flipErrorTimer     = null;
 
-// Computed
+const SWIPE_THRESHOLD  = 70;
+const SWIPE_DIR_RATIO  = 1.5;
+
+// ── Computed ──────────────────────────────────────────────────────────────
 const isStreaming = computed(() => status.value === 'streaming');
 
-const statusLabel = computed(() => {
-    const map = {
-        idle:       'Kamera tidak aktif',
-        requesting: 'Meminta izin...',
-        streaming:  'Kamera aktif',
-        denied:     'Izin ditolak',
-        error:      'Kamera error',
-    };
-    return map[status.value] ?? '-';
-});
+const statusLabel = computed(() => ({
+    idle:       'Kamera tidak aktif',
+    requesting: 'Meminta izin...',
+    streaming:  'Kamera aktif',
+    denied:     'Izin ditolak',
+    error:      'Kamera error',
+}[status.value] ?? '-'));
 
-const statusDotColor = computed(() => {
-    const map = {
-        idle:       'bg-slate-600',
-        requesting: 'bg-yellow-500 animate-pulse',
-        streaming:  'bg-emerald-500',
-        denied:     'bg-red-500',
-        error:      'bg-orange-500',
-    };
-    return map[status.value] ?? 'bg-slate-600';
-});
+const statusDotColor = computed(() => ({
+    idle:       'bg-slate-600',
+    requesting: 'bg-yellow-500 animate-pulse',
+    streaming:  'bg-emerald-500',
+    denied:     'bg-red-500',
+    error:      'bg-orange-500',
+}[status.value] ?? 'bg-slate-600'));
 
-const statusTextColor = computed(() => {
-    const map = {
-        idle:       'text-slate-500',
-        requesting: 'text-yellow-400',
-        streaming:  'text-emerald-400',
-        denied:     'text-red-400',
-        error:      'text-orange-400',
-    };
-    return map[status.value] ?? 'text-slate-500';
-});
+const statusTextColor = computed(() => ({
+    idle:       'text-slate-500',
+    requesting: 'text-yellow-400',
+    streaming:  'text-emerald-400',
+    denied:     'text-red-400',
+    error:      'text-orange-400',
+}[status.value] ?? 'text-slate-500'));
 
 const elapsedFormatted = computed(() => {
     const s = props.elapsedSeconds;
-    const m = Math.floor(s / 60).toString().padStart(2, '0');
-    const sec = (s % 60).toString().padStart(2, '0');
-    return `${m}:${sec}`;
+    return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 });
 
-// Methods
-async function startCamera() {
-    if (mediaStream) return; // already streaming
-
-    status.value = 'requesting';
-    errorMessage.value = '';
-
+// ── Camera helpers ────────────────────────────────────────────────────────
+async function detectMultipleCameras() {
     try {
-        const constraints = {
-            video: {
-                facingMode: 'user',       // kamera depan
-                width:  { ideal: 1280 },
-                height: { ideal: 720 },
-            },
-            audio: false,
-        };
-
-        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-        if (videoRef.value) {
-            videoRef.value.srcObject = mediaStream;
-            await videoRef.value.play();
-
-            // get track info
-            const track = mediaStream.getVideoTracks()[0];
-            if (track) {
-                const settings = track.getSettings();
-                videoWidth.value  = settings.width  ?? 0;
-                videoHeight.value = settings.height ?? 0;
-                cameraLabel.value = track.label || 'Kamera';
-            }
-        }
-
-        status.value = 'streaming';
-        emit('camera-ready', mediaStream);
-
-    } catch (err) {
-        mediaStream = null;
-
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            status.value = 'denied';
-            errorMessage.value = 'Izin kamera ditolak oleh browser atau pengguna.';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-            status.value = 'error';
-            errorMessage.value = 'Tidak ada kamera yang ditemukan pada perangkat ini.';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-            status.value = 'error';
-            errorMessage.value = 'Kamera sedang digunakan oleh aplikasi lain.';
-        } else {
-            status.value = 'error';
-            errorMessage.value = `Error: ${err.message || err.name}`;
-        }
-
-        emit('camera-error', { name: err.name, message: errorMessage.value });
+        if (!navigator.mediaDevices?.enumerateDevices) return;
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams    = devices.filter(d => d.kind === 'videoinput');
+        hasMutipleCamera.value = cams.length > 1;
+    } catch (_) {
+        hasMutipleCamera.value = false;
     }
 }
 
-function stopCamera() {
+function stopCurrentStream() {
     if (mediaStream) {
-        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream.getTracks().forEach(t => t.stop());
         mediaStream = null;
     }
-    if (videoRef.value) {
-        videoRef.value.srcObject = null;
+    if (videoRef.value) videoRef.value.srcObject = null;
+}
+
+function showFlipError(msg) {
+    flipError.value = msg;
+    clearTimeout(flipErrorTimer);
+    flipErrorTimer = setTimeout(() => { flipError.value = ''; }, 3500);
+}
+
+// ── Start camera ──────────────────────────────────────────────────────────
+async function startCamera(requestedFacing = 'environment') {
+    if (mediaStream) return; // already streaming
+    status.value       = 'requesting';
+    errorMessage.value = '';
+
+    const constraints = {
+        video: {
+            facingMode: { ideal: requestedFacing },
+            width:      { ideal: 1280 },
+            height:     { ideal: 720 },
+        },
+        audio: false,
+    };
+
+    try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        await _applyStream(mediaStream, requestedFacing);
+        await detectMultipleCameras();
+        _showSwipeHintBriefly();
+    } catch (err) {
+        // If back camera unavailable, try front
+        if (requestedFacing === 'environment') {
+            try {
+                const fallbackConstraints = { video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+                mediaStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+                await _applyStream(mediaStream, 'user');
+                await detectMultipleCameras();
+                return;
+            } catch (_) { /* fall through to error handler */ }
+        }
+        _handleCameraError(err);
     }
-    status.value  = 'idle';
+}
+
+async function _applyStream(stream, facing) {
+    if (!videoRef.value) return;
+    videoRef.value.srcObject = stream;
+    await videoRef.value.play();
+    const track    = stream.getVideoTracks()[0];
+    const settings = track?.getSettings() ?? {};
+    videoWidth.value  = settings.width  ?? 0;
+    videoHeight.value = settings.height ?? 0;
+    cameraLabel.value = track?.label ?? 'Kamera';
+    facingMode.value  = facing;
+    status.value      = 'streaming';
+    emit('camera-ready', stream);
+}
+
+function _handleCameraError(err) {
+    stopCurrentStream();
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        status.value       = 'denied';
+        errorMessage.value = 'Izin kamera ditolak oleh browser atau pengguna.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        status.value       = 'error';
+        errorMessage.value = 'Tidak ada kamera yang ditemukan pada perangkat ini.';
+    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        status.value       = 'error';
+        errorMessage.value = 'Kamera sedang digunakan oleh aplikasi lain.';
+    } else {
+        status.value       = 'error';
+        errorMessage.value = `Kamera tidak dapat diakses. (${err.name ?? 'Unknown error'})`;
+    }
+    emit('camera-error', { name: err.name, message: errorMessage.value });
+}
+
+// ── Flip camera (safe — does NOT reset assessment state) ──────────────────
+async function flipCamera() {
+    if (!isStreaming.value || isSwitching.value) return;
+    isSwitching.value = true;
+    flipError.value   = '';
+
+    const nextFacing = facingMode.value === 'environment' ? 'user' : 'environment';
+
+    try {
+        const constraints = {
+            video: { facingMode: { ideal: nextFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+        };
+        const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        // Stop old stream ONLY after new stream is obtained
+        stopCurrentStream();
+        mediaStream = newStream;
+        await _applyStream(newStream, nextFacing);
+        _showSwipeHintBriefly();
+    } catch (err) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            showFlipError('Tidak dapat mengganti kamera. Pastikan izin kamera sudah diberikan.');
+        } else if (err.name === 'NotFoundError') {
+            showFlipError(`Kamera ${nextFacing === 'environment' ? 'belakang' : 'depan'} tidak tersedia.`);
+        } else {
+            showFlipError('Tidak dapat mengganti kamera saat ini. Coba lagi.');
+        }
+    } finally {
+        isSwitching.value = false;
+    }
+}
+
+// ── Stop camera ───────────────────────────────────────────────────────────
+function stopCamera() {
+    stopCurrentStream();
+    status.value      = 'idle';
     videoWidth.value  = 0;
     videoHeight.value = 0;
     cameraLabel.value = 'Kamera';
@@ -270,16 +366,56 @@ function stopCamera() {
 }
 
 function retryCamera() {
-    status.value = 'idle';
+    status.value       = 'idle';
     errorMessage.value = '';
-    startCamera();
+    startCamera(facingMode.value);
 }
 
-// Cleanup on unmount — penting agar stream tidak bocor
-onUnmounted(() => {
-    stopCamera();
+// ── Swipe gesture on camera area ──────────────────────────────────────────
+function onCameraTouchStart(e) {
+    swipeTouchStartX = e.touches[0].clientX;
+    swipeTouchStartY = e.touches[0].clientY;
+}
+
+function onCameraTouchEnd(e) {
+    if (!isStreaming.value || !hasMutipleCamera.value || isSwitching.value) return;
+    const dx = e.changedTouches[0].clientX - swipeTouchStartX;
+    const dy = e.changedTouches[0].clientY - swipeTouchStartY;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    if (Math.abs(dx) < Math.abs(dy) * SWIPE_DIR_RATIO) return;
+    flipCamera();
+}
+
+function _showSwipeHintBriefly() {
+    if (!hasMutipleCamera.value) return;
+    showSwipeHint.value = true;
+    clearTimeout(swipeHintTimer);
+    swipeHintTimer = setTimeout(() => { showSwipeHint.value = false; }, 3000);
+}
+
+// Attach swipe events to camera container via Vue template touch handlers
+// (done in template via @touchstart / @touchend on cameraContainerRef)
+// We expose via watch for when the ref is set
+watch(cameraContainerRef, (el) => {
+    if (!el) return;
+    el.addEventListener('touchstart', onCameraTouchStart, { passive: true });
+    el.addEventListener('touchend',   onCameraTouchEnd,   { passive: true });
 });
 
-// Expose methods + videoRef agar parent bisa memanggil dan mengambil elemen video
-defineExpose({ startCamera, stopCamera, isStreaming, videoRef });
+onUnmounted(() => {
+    stopCamera();
+    clearTimeout(swipeHintTimer);
+    clearTimeout(flipErrorTimer);
+    if (cameraContainerRef.value) {
+        cameraContainerRef.value.removeEventListener('touchstart', onCameraTouchStart);
+        cameraContainerRef.value.removeEventListener('touchend',   onCameraTouchEnd);
+    }
+});
+
+defineExpose({ startCamera, stopCamera, isStreaming, videoRef, flipCamera });
 </script>
+
+<style scoped>
+.toast-enter-active, .toast-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
+.toast-enter-from, .toast-leave-to       { opacity: 0; transform: translateY(8px); }
+</style>

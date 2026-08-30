@@ -7,7 +7,86 @@
     >
         <div class="max-w-3xl space-y-6">
 
-            <!-- Profile section -->
+            <!-- ── Durasi Tes ──────────────────────────────────────────────── -->
+            <div class="card p-6">
+                <h3 class="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Durasi & Countdown Tes
+                </h3>
+                <p class="text-xs text-slate-500 mb-5">Atur durasi maksimum dan countdown sebelum assessment dimulai. Perubahan berlaku pada assessment berikutnya.</p>
+
+                <div class="space-y-3">
+                    <div v-for="(cfg, testName) in testSettings" :key="testName"
+                         class="flex flex-wrap items-center gap-3 py-3 border-b border-white/5 last:border-0">
+                        <div class="flex-1 min-w-[160px]">
+                            <p class="text-sm font-medium text-white">{{ testName }}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-500 whitespace-nowrap">Durasi (detik)</label>
+                            <input
+                                v-model.number="cfg.durationSec"
+                                type="number" min="5" max="600" step="5"
+                                class="w-20 px-2 py-1.5 bg-dark-950 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-primary-500/50 text-center"
+                            />
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-500 whitespace-nowrap">Countdown</label>
+                            <input
+                                v-model.number="cfg.countdownSec"
+                                type="number" min="0" max="10" step="1"
+                                class="w-16 px-2 py-1.5 bg-dark-950 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-primary-500/50 text-center"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button @click="resetSettings"
+                            class="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+                        Reset ke Default
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Benchmark ──────────────────────────────────────────────── -->
+            <div class="card p-6">
+                <h3 class="text-base font-semibold text-white mb-1 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Benchmark Pencapaian
+                </h3>
+                <p class="text-xs text-slate-500 mb-5">Atur target benchmark untuk menghitung pencapaian (%). Achievement = Hasil / Benchmark × 100%.</p>
+
+                <div class="space-y-3">
+                    <div v-for="(bm, testName) in benchmarks" :key="testName"
+                         class="flex flex-wrap items-center gap-3 py-3 border-b border-white/5 last:border-0">
+                        <div class="flex-1 min-w-[160px]">
+                            <p class="text-sm font-medium text-white">{{ testName }}</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Target: {{ bm.unit }}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input
+                                v-model.number="bm.value"
+                                type="number" min="1" max="9999" step="1"
+                                class="w-24 px-2 py-1.5 bg-dark-950 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-primary-500/50 text-center"
+                            />
+                            <span class="text-xs text-slate-500 whitespace-nowrap">{{ bm.unit }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button @click="resetBenchmarks"
+                            class="text-xs text-slate-500 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+                        Reset ke Default
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Profil Pengguna ─────────────────────────────────────────── -->
             <div class="card p-6">
                 <h3 class="text-base font-semibold text-white mb-5 flex items-center gap-2">
                     <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -20,22 +99,11 @@
                     <div>
                         <p class="text-sm font-bold text-white">Admin</p>
                         <p class="text-xs text-slate-500">Physical Trainer • admin@physassess.com</p>
-                        <button class="mt-1.5 text-xs text-primary-400 hover:text-primary-300 transition-colors">Ubah foto profil</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">Nama</label>
-                        <input value="Admin" type="text" class="w-full px-3 py-2.5 bg-dark-950 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-primary-500/50 transition-colors"/>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">Email</label>
-                        <input value="admin@physassess.com" type="email" class="w-full px-3 py-2.5 bg-dark-950 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-primary-500/50 transition-colors"/>
                     </div>
                 </div>
             </div>
 
-            <!-- System section -->
+            <!-- ── System Settings ────────────────────────────────────────── -->
             <div class="card p-6">
                 <h3 class="text-base font-semibold text-white mb-5 flex items-center gap-2">
                     <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -59,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- About -->
+            <!-- ── About ──────────────────────────────────────────────────── -->
             <div class="card p-6">
                 <h3 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -71,16 +139,13 @@
                     <div><p class="text-slate-500 text-xs mb-0.5">Nama Aplikasi</p><p class="text-white font-medium">Physical Assessment</p></div>
                     <div><p class="text-slate-500 text-xs mb-0.5">Versi</p><p class="text-white font-medium">v1.0.0 Beta</p></div>
                     <div><p class="text-slate-500 text-xs mb-0.5">Framework</p><p class="text-white font-medium">Laravel 12 + Vue 3</p></div>
-                    <div><p class="text-slate-500 text-xs mb-0.5">AI Engine</p><p class="text-yellow-400 font-medium">Coming Soon</p></div>
+                    <div><p class="text-slate-500 text-xs mb-0.5">AI Engine</p><p class="text-primary-400 font-medium">MediaPipe Pose</p></div>
                 </div>
             </div>
 
-            <!-- Save button -->
-            <div class="flex justify-end gap-3">
-                <button class="btn-secondary px-6 py-2.5 text-sm">Reset</button>
-                <button class="btn-primary px-6 py-2.5 text-sm">Simpan Perubahan</button>
-            </div>
-
+            <p class="text-xs text-slate-600 text-center pb-4">
+                ✓ Semua perubahan disimpan otomatis ke browser storage.
+            </p>
         </div>
     </PhysicalAssessmentLayout>
 </template>
@@ -88,22 +153,21 @@
 <script setup>
 import { reactive } from 'vue';
 import PhysicalAssessmentLayout from '@/Layouts/PhysicalAssessmentLayout.vue';
+import { useAssessmentSettings } from '@/composables/useAssessmentSettings.js';
 
 const props = defineProps({
     currentPage: { type: String, default: 'settings' },
 });
 
 const emit = defineEmits(['navigate']);
+function handleNavigate(page) { emit('navigate', page); }
 
-function handleNavigate(page) {
-    emit('navigate', page);
-}
+// Shared reactive state — auto-saved via watch inside composable
+const { testSettings, benchmarks, resetSettings, resetBenchmarks } = useAssessmentSettings();
 
 const systemSettings = reactive([
-    { key: 'notifications', label: 'Notifikasi', description: 'Aktifkan notifikasi sistem', value: true },
-    { key: 'darkMode', label: 'Dark Mode', description: 'Tampilan gelap (aktif secara default)', value: true },
-    { key: 'autoSave', label: 'Auto-Save', description: 'Simpan hasil assessment secara otomatis', value: true },
-    { key: 'aiPose', label: 'AI Pose Detection', description: 'Aktifkan MediaPipe Pose Estimation (Coming Soon)', value: false },
-    { key: 'webcam', label: 'Webcam Auto-Start', description: 'Otomatis aktifkan kamera saat memulai tes (Coming Soon)', value: false },
+    { key: 'notifications', label: 'Notifikasi',          description: 'Aktifkan notifikasi sistem',                          value: true  },
+    { key: 'darkMode',      label: 'Dark Mode',            description: 'Tampilan gelap (aktif secara default)',               value: true  },
+    { key: 'autoSave',      label: 'Auto-Save',            description: 'Simpan hasil assessment secara otomatis',             value: true  },
 ]);
 </script>
