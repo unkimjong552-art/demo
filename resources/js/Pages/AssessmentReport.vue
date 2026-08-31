@@ -551,11 +551,13 @@ body { margin: 0; padding: 0; background: #f1f5f9; font-family: 'Inter', system-
     margin: 10mm 12mm;
   }
 
-  /* Hide everything except report-paper */
-  body > *           { display: none !important; }
+  /* Hide the Vue mount point children we don't need,
+     but NOT #report-app itself — it contains .report-shell */
   body               { background: white !important; }
+  body > *           { display: none !important; }
 
-  /* Show only the report paper */
+  /* Re-show the Vue root and the shell inside it */
+  body > #report-app { display: block !important; }
   .report-shell      { display: block !important; padding: 0 !important; background: white !important; }
   .report-paper      {
     display: block !important;
