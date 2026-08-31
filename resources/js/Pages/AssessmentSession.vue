@@ -4651,6 +4651,7 @@ const isStaticBalanceTest = computed(() => props.test.name === 'Keseimbangan Sta
 const {
     currentPhase:              balancePhase,
     balanceDuration,
+    bestDuration:              balanceBestDuration,
     totalDuration:             balanceTotalDuration,
     standingLeg,
     ankleDiff,
@@ -4738,6 +4739,7 @@ const isWallSitTest = computed(() => props.test.name === 'Wall Sit');
 const {
     currentPhase:        wallSitPhase,
     holdDuration,
+    bestDuration:        wallSitBestDuration,
     totalDuration:       wallSitTotalDuration,
     kneeAngle,
     countingSide:        wallSitCountingSide,
@@ -4817,6 +4819,7 @@ const isElbowPlankTest = computed(() => props.test.name === 'Elbow Plank');
 const {
     currentPhase:        plankPhase,
     holdDuration:        plankHoldDuration,
+    bestDuration:        plankBestDuration,
     totalDuration:       plankTotalDuration,
     bodyAngle:           plankBodyAngle,
     countingSide:        plankCountingSide,
@@ -5155,17 +5158,17 @@ function captureAssessmentResult() {
         resultValue   = sitUpCount.value;
         resultDisplay = `${resultValue} rep`;
     } else if (isStaticBalanceTest.value) {
-        resultValue   = parseFloat(balanceDuration.value.toFixed(1));
+        resultValue   = parseFloat(balanceBestDuration.value.toFixed(1));
         const total   = parseFloat(balanceTotalDuration.value.toFixed(1));
         resultDisplay = `${resultValue} detik`;
         extra         = { totalDuration: total };
     } else if (isWallSitTest.value) {
-        resultValue   = parseFloat(holdDuration.value.toFixed(1));
+        resultValue   = parseFloat(wallSitBestDuration.value.toFixed(1));
         const total   = parseFloat(wallSitTotalDuration.value.toFixed(1));
         resultDisplay = `${resultValue} detik`;
         extra         = { totalDuration: total };
     } else if (isElbowPlankTest.value) {
-        resultValue   = parseFloat(plankHoldDuration.value.toFixed(1));
+        resultValue   = parseFloat(plankBestDuration.value.toFixed(1));
         const total   = parseFloat(plankTotalDuration.value.toFixed(1));
         resultDisplay = `${resultValue} detik`;
         extra         = { totalDuration: total };

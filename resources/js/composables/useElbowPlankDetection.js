@@ -198,6 +198,7 @@ export function useElbowPlankDetection(config = {}) {
     // ── Reactive state ────────────────────────────────────────────────────────
     const currentPhase   = ref(PLANK_PHASE.WAITING);
     const holdDuration   = ref(0);    // durasi hold terakhir (detik, float)
+    const bestDuration   = ref(0);    // durasi hold TERPANJANG dalam sesi
     const totalDuration  = ref(0);    // total akumulasi semua hold sesi ini
     const bodyAngle      = ref(0);    // sudut body alignment sisi valid (derajat)
     const countingSide   = ref('—'); // 'LEFT' | 'RIGHT' | 'BOTH' | '—'
@@ -569,6 +570,10 @@ export function useElbowPlankDetection(config = {}) {
             const durationSec = durationMs / 1000;
             holdDuration.value  = parseFloat(durationSec.toFixed(2));
             totalDuration.value = parseFloat((totalDuration.value + durationSec).toFixed(2));
+            // Track best hold
+            if (holdDuration.value > bestDuration.value) {
+                bestDuration.value = holdDuration.value;
+            }
             if (PLANK_DEBUG) pushHoldEvent(holdConfirmedTime, nowMs, reason);
         }
         currentPhase.value = PLANK_PHASE.READY;
@@ -711,7 +716,7 @@ export function useElbowPlankDetection(config = {}) {
                 const holdElapsed = now - holdStartTime;
                 if (holdElapsed >= cfg.HOLD_CONFIRM_MS) {
                     currentPhase.value = PLANK_PHASE.HOLDING;
-                    holdConfirmedTime  = now - holdElapsed;
+                    holdConfirmedTime  = now;  // mulai dari SEKARANG (bukan retroaktif)
                     isHolding.value    = true;
                     feedback.value     = 'Bagus! Pertahankan posisi plank';
                     if (PLANK_DEBUG) _cumul.holdConfirmedCount++;
@@ -813,6 +818,7 @@ export function useElbowPlankDetection(config = {}) {
     function resetPlank() {
         currentPhase.value  = PLANK_PHASE.WAITING;
         holdDuration.value  = 0;
+        bestDuration.value  = 0;
         totalDuration.value = 0;
         bodyAngle.value     = 0;
         countingSide.value  = '—';
@@ -895,7 +901,7 @@ export function useElbowPlankDetection(config = {}) {
 
     return {
         // State
-        currentPhase, holdDuration, totalDuration,
+        currentPhase, holdDuration, bestDuration, totalDuration,
         bodyAngle, countingSide, feedback, isHolding,
 
         // Debug

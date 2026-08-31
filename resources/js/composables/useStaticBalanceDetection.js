@@ -170,6 +170,7 @@ export function useStaticBalanceDetection(config = {}) {
     // ── Reactive state ────────────────────────────────────────────────────────
     const currentPhase     = ref(BALANCE_PHASE.WAITING);
     const balanceDuration  = ref(0);      // durasi balance terakhir (detik, float)
+    const bestDuration     = ref(0);      // durasi balance TERPANJANG dalam sesi
     const totalDuration    = ref(0);      // total akumulasi semua balance dalam sesi
     const standingLeg      = ref(STANDING_LEG.UNKNOWN);
     const ankleDiff        = ref(0);      // diffY terakhir (0.0–1.0)
@@ -662,9 +663,9 @@ export function useStaticBalanceDetection(config = {}) {
                 if (liftElapsed >= cfg.LIFT_CONFIRM_MS) {
                     // Konfirmasi: BALANCING dimulai
                     currentPhase.value   = BALANCE_PHASE.BALANCING;
-                    balanceStartTime     = now - liftElapsed; // retroaktif dari awal lift
+                    balanceStartTime     = now;  // mulai dari SEKARANG (bukan retroaktif)
                     isBalancing.value    = true;
-                    _currentEventStart   = balanceStartTime;
+                    _currentEventStart   = now;
                     _currentStandingLeg  = standingSide;
                     feedback.value       = `Bagus! Pertahankan posisi`;
 
@@ -761,6 +762,10 @@ export function useStaticBalanceDetection(config = {}) {
             const durationSec  = durationMs / 1000;
             balanceDuration.value = parseFloat(durationSec.toFixed(2));
             totalDuration.value   = parseFloat((totalDuration.value + durationSec).toFixed(2));
+            // Track best hold — simpan jika ini lebih panjang dari sebelumnya
+            if (balanceDuration.value > bestDuration.value) {
+                bestDuration.value = balanceDuration.value;
+            }
 
             if (BALANCE_DEBUG) {
                 pushBalanceEvent(
@@ -795,6 +800,7 @@ export function useStaticBalanceDetection(config = {}) {
     function resetBalance() {
         currentPhase.value    = BALANCE_PHASE.WAITING;
         balanceDuration.value = 0;
+        bestDuration.value    = 0;
         totalDuration.value   = 0;
         standingLeg.value     = STANDING_LEG.UNKNOWN;
         ankleDiff.value       = 0;
@@ -899,6 +905,7 @@ export function useStaticBalanceDetection(config = {}) {
         // State
         currentPhase,
         balanceDuration,
+        bestDuration,
         totalDuration,
         standingLeg,
         ankleDiff,

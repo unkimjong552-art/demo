@@ -100,21 +100,25 @@ export const SQUATJUMP_CONFIG = {
      * ada upward movement (bukan sekadar noise). Ini membantu membedakan
      * Squat Jump (naik cepat) dari Deep Squat (naik pelan-pelan).
      *
+     * 120ms ≈ ~2 frame @13fps — minimal 2 frame harus knee sudah naik
+     * sebelum hip lift dikonfirmasi.
+     *
      * !! PROVISIONAL — kalibrasi sangat diperlukan !!
      */
-    JUMP_DETECT_MS: 50,
+    JUMP_DETECT_MS: 120,
 
     /**
      * Perubahan minimum hip Y (normalized) yang dianggap indikasi lompat ke atas.
      * Ketika melompat, hip.y berkurang (bergerak ke atas di layar).
      * Negatif berarti hip bergerak ke atas.
      *
-     * 0.02 = 2% tinggi frame — sangat konservatif karena MediaPipe smoothing.
-     * Dari kamera jauh mungkin perlu dikecilkan.
+     * 0.04 = 4% tinggi frame — lebih ketat dari sebelumnya (0.02) agar
+     * tidak false-positive dari noise MediaPipe (jitter ~1–2%).
+     * Dari kamera jauh mungkin perlu dikecilkan kembali.
      *
      * !! PROVISIONAL — nilai paling tidak pasti, perlu data nyata !!
      */
-    HIP_LIFT_THRESHOLD: 0.02,
+    HIP_LIFT_THRESHOLD: 0.04,
 
     /**
      * Durasi maksimum (ms) landmark boleh hilang saat SQUAT atau JUMP
@@ -720,9 +724,11 @@ export function useSquatJumpDetection(config = {}) {
 
         } else if (phase === SQUATJUMP_PHASE.SQUAT) {
             // ── Squat terkonfirmasi — menunggu gerakan lompat ───────────────
-            // Jump terjadi ketika DARI posisi squat, knee angle naik (lebih besar)
-            // DAN ada indikasi hip terangkat
-            // Deteksi: knee keluar dari squat zone DAN hip lift terdeteksi
+            // Jump VALID harus memenuhi KEDUA kondisi (AND):
+            //   1. Knee sudah keluar squat zone selama minimal JUMP_DETECT_MS
+            //   2. Hip terangkat >= HIP_LIFT_THRESHOLD (indikasi lompatan nyata)
+            // Jika hip data tidak tersedia (hipYAtSquatConfirm null),
+            // fallback ke time-only dengan window lebih panjang (200ms).
 
             const kneeRisingFromSquat = currentKnee > cfg.SQUAT_ANGLE; // keluar squat zone = naik
 
@@ -731,7 +737,15 @@ export function useSquatJumpDetection(config = {}) {
                 if (jumpStartTime === null) jumpStartTime = now;
                 const jumpElapsed = now - jumpStartTime;
 
-                if (jumpElapsed >= cfg.JUMP_DETECT_MS || hipLiftDetected) {
+                // Tentukan apakah jump terkonfirmasi:
+                // - Jika ada data hip → WAJIB knee naik >= JUMP_DETECT_MS DAN hip lift terdeteksi
+                // - Fallback (tanpa data hip) → knee naik >= 200ms (lebih konservatif)
+                const hasHipData     = hipYAtSquatConfirm !== null;
+                const jumpConfirmed  = hasHipData
+                    ? (jumpElapsed >= cfg.JUMP_DETECT_MS && hipLiftDetected)
+                    : (jumpElapsed >= 200);
+
+                if (jumpConfirmed) {
                     // Jump dikonfirmasi — masuk fase JUMP
                     currentPhase.value = SQUATJUMP_PHASE.JUMP;
                     landingStartTime   = null;
@@ -739,8 +753,12 @@ export function useSquatJumpDetection(config = {}) {
                     if (SQUATJUMP_DEBUG) _cumul.jumpDetectedCount++;
                 } else {
                     const pct = Math.round((jumpElapsed / cfg.JUMP_DETECT_MS) * 100);
-                    feedback.value = `Lompat! (${pct}%)`;
-                    _pipelineBlock = `Jump akumulasi: ${Math.round(jumpElapsed)}ms/${cfg.JUMP_DETECT_MS}ms`;
+                    feedback.value = hasHipData
+                        ? (hipLiftDetected ? `Lompat! (${pct}%)` : `Lompat lebih tinggi! (hip lift: ${hipLift.toFixed(3)})`)
+                        : `Lompat! (${pct}%)`;
+                    _pipelineBlock = hasHipData
+                        ? `Jump: knee naik ${Math.round(jumpElapsed)}ms/${cfg.JUMP_DETECT_MS}ms, hipLift=${hipLift.toFixed(3)}/${cfg.HIP_LIFT_THRESHOLD}`
+                        : `Jump (no hip data): ${Math.round(jumpElapsed)}ms/200ms`;
                 }
             } else {
                 // Masih di squat zone — belum naik, tunggu

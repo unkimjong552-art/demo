@@ -175,6 +175,7 @@ export function useWallSitDetection(config = {}) {
     // ── Reactive state ────────────────────────────────────────────────────────
     const currentPhase    = ref(WALLSIT_PHASE.WAITING);
     const holdDuration    = ref(0);   // durasi hold terakhir (detik, float)
+    const bestDuration    = ref(0);   // durasi hold TERPANJANG dalam sesi
     const totalDuration   = ref(0);   // total akumulasi semua hold dalam sesi
     const kneeAngle       = ref(0);   // sudut lutut sisi yang valid (derajat)
     const countingSide    = ref('—'); // 'LEFT' | 'RIGHT' | 'BOTH' | '—'
@@ -470,6 +471,10 @@ export function useWallSitDetection(config = {}) {
             const durationSec = durationMs / 1000;
             holdDuration.value  = parseFloat(durationSec.toFixed(2));
             totalDuration.value = parseFloat((totalDuration.value + durationSec).toFixed(2));
+            // Track best hold
+            if (holdDuration.value > bestDuration.value) {
+                bestDuration.value = holdDuration.value;
+            }
             if (WALLSIT_DEBUG) pushHoldEvent(holdConfirmedTime, nowMs, reason);
         }
         currentPhase.value  = WALLSIT_PHASE.READY;
@@ -606,7 +611,7 @@ export function useWallSitDetection(config = {}) {
                 if (holdElapsed >= cfg.HOLD_CONFIRM_MS) {
                     // Konfirmasi: HOLDING dimulai
                     currentPhase.value = WALLSIT_PHASE.HOLDING;
-                    holdConfirmedTime  = now - holdElapsed; // retroaktif
+                    holdConfirmedTime  = now;  // mulai dari SEKARANG (bukan retroaktif)
                     isHolding.value    = true;
                     feedback.value     = 'Bagus! Pertahankan posisi';
                     if (WALLSIT_DEBUG) _cumul.holdConfirmedCount++;
@@ -693,6 +698,7 @@ export function useWallSitDetection(config = {}) {
     function resetWallSit() {
         currentPhase.value  = WALLSIT_PHASE.WAITING;
         holdDuration.value  = 0;
+        bestDuration.value  = 0;
         totalDuration.value = 0;
         kneeAngle.value     = 0;
         countingSide.value  = '—';
@@ -781,6 +787,7 @@ export function useWallSitDetection(config = {}) {
         // State
         currentPhase,
         holdDuration,
+        bestDuration,
         totalDuration,
         kneeAngle,
         countingSide,
